@@ -67,7 +67,7 @@ executable day01
     -- other-extensions:
 
     -- Other library packages from which modules are imported.
-    build-depends:    base ^>=4.17.1.0, containers
+    build-depends:    base >=4.17.1.0, containers
 
     -- Directories containing source files.
     hs-source-dirs:   src
@@ -79,7 +79,7 @@ executable day02
     import:           warnings
     main-is:          02.hs
 
-    build-depends:    base ^>=4.17.1.0, ghc
+    build-depends:    base >=4.17.1.0, ghc
     hs-source-dirs:   src
 
     default-language: Haskell2010
