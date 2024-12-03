@@ -1,0 +1,13 @@
+version: 1
+author: "Fish-Face"
+language: "Haskell"
+image: "haskell"
+code: "/code"
+workdir: "/code"
+runonce: "cabal build -O2 day%zeroday% && ln -s $(cabal list-bin day%zeroday% ./day%zeroday%"
+cmd: "./day%zeroday% inputs/%zeroday.txt"
+daypath: "src/%zeroday%.hs"
+inputfile: "inputs/%zeroday%"
+answerfile: "answers/%zeroday%"
+common:
+  - aoc2024.cabal
