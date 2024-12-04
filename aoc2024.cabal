@@ -56,12 +56,14 @@ common warnings
 library common
     import:             warnings
     hs-source-dirs:     common
-    build-depends:      base ^>= {4.17, 4.18, 4.19, 4.20}, containers
+    build-depends:      base ^>= {4.17, 4.18, 4.19, 4.20}, containers, array
     default-language:   Haskell2010
 
     exposed-modules:
         Advent
         Advent.Input
+        Advent.Grid
+        Advent.Coord
 
 common day
     import:             warnings
@@ -83,3 +85,8 @@ executable day03
     import:           day
     main-is:          03.hs
     build-depends:    regex-pcre, array, text
+
+executable day04
+    import:           day
+    main-is:          04.hs
+    build-depends:    array
