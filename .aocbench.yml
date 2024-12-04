@@ -5,7 +5,7 @@ dockerfile: .docker/Dockerfile
 #image: haskell
 code: /code
 workdir: /code
-runonce: "cabal build -O2 day%zeroday% && ln -s $(cabal list-bin day%zeroday%) ./day%zeroday%"
+runonce: "cabal build -O2 day%zeroday% && ln -s $(cabal list-bin -O2 day%zeroday%) ./day%zeroday%"
 cmd: ./day%zeroday% inputs/%zeroday.txt
 daypath: src/%zeroday%.hs
 inputfile: inputs/%zeroday%.txt
