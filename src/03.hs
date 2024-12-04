@@ -27,7 +27,7 @@ part2regex = "(?s)do\\(\\).*?don't\\(\\)"
 part2 :: String -> [String]
 -- wrap in do() and don't() to make regex simpler
 part2 input = let input' = ("do()" ++ input ++ "don't()")
-                  matches = (input' =~ part2regex) :: [[String]]
+                  matches = (input' =~ part2regex) :: [[String]] in
     concat matches
 
 sumProducts :: [(Int, Int)] -> Int
