@@ -56,7 +56,7 @@ common warnings
 library common
     import:             warnings
     hs-source-dirs:     common
-    build-depends:      base ^>= {4.17, 4.18, 4.19, 4.20}
+    build-depends:      base ^>= {4.17, 4.18, 4.19, 4.20}, containers
     default-language:   Haskell2010
 
     exposed-modules:
