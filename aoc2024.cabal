@@ -94,3 +94,4 @@ executable day04
 executable day05
     import:           day
     main-is:          05.hs
+    build-depends:    split

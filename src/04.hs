@@ -1,7 +1,11 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
 import Data.Array
 import Data.List
+
+import qualified Data.ByteString as B
 
 import Advent.Input
 import Advent.Grid
@@ -10,7 +14,7 @@ import Advent.Coord
 main :: IO ()
 main = do
     input <- readInputLines
-    let grid = fromLines (filter (not . null) input)
+    let grid = fromLines (filter (not . B.null) input)
         dirIterators = [
             iterateEast,
             iterateWest,
