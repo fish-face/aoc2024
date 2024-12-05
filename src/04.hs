@@ -2,9 +2,7 @@ module Main where
 
 import Data.Array
 import Data.List
-import Data.Ix
 
-import Advent
 import Advent.Input
 import Advent.Grid
 import Advent.Coord
@@ -41,10 +39,11 @@ countInDir grid dirIterator =
 searchAt :: Array (Int, Int) Char -> Coord -> Bool
 searchAt grid origin =
     let
-        allCornerCoords = allRotationsAround (origin + (1,1)) (corners origin)
-        cornersMatch = any (\rot -> map (grid !) rot == "SSMM") allCornerCoords
+--        allCornerCoords = allRotationsAround (origin + (1,1)) (corners origin)
+--        cornersMatch = any (\rot -> map (grid !) rot == "SSMM") allCornerCoords
+        cornerLetters = map (grid !) $ corners origin
     in
-    grid ! (origin + (1, 1)) == 'A' && cornersMatch
+    grid ! (origin + (1, 1)) == 'A' && elem cornerLetters ["SSMM", "SMMS", "MMSS", "MSSM"]
 
 corners :: Coord -> [Coord]
-corners origin = [origin, origin + (2, 0), origin + (0, 2), origin + (2, 2)]
+corners origin = [origin, origin + (2, 0), origin + (2, 2), origin + (0, 2)]
