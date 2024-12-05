@@ -6,7 +6,8 @@ dockerfile: .docker/Dockerfile
 code: /code
 workdir: /code
 runonce: cabal build -O2 day%zeroday%
-cmd: $(cabal list-bin -O2 day%zeroday%) inputs/%zeroday%.txt
+prerun: ln -s $(cabal list-bin -O2 day%zeroday%) /tmp/cmd
+cmd: /tmp/cmd inputs/%zeroday%.txt
 daypath: src/%zeroday%.hs
 inputfile: inputs/%zeroday%.txt
 answerfile: answers/%zeroday%.txt
