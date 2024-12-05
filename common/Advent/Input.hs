@@ -1,13 +1,14 @@
 module Advent.Input where
 
 import qualified System.Environment as SE
+import qualified Data.ByteString as B
 
-readInput :: IO String
+readInput :: IO B.ByteString
 readInput = do
     args <- SE.getArgs
-    readFile (head args)
+    B.readFile (head args)
 
-readInputLines :: IO [String]
+readInputLines :: IO [B.ByteString]
 readInputLines = do
     args <- SE.getArgs
-    lines <$> readFile (head args)
+    B.split 10 <$> B.readFile (head args)

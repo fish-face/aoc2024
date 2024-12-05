@@ -56,7 +56,7 @@ common warnings
 library common
     import:             warnings
     hs-source-dirs:     common
-    build-depends:      base ^>= {4.17, 4.18, 4.19, 4.20}, containers, array
+    build-depends:      base ^>= {4.17, 4.18, 4.19, 4.20}, containers, array, bytestring
     default-language:   Haskell2010
 
     exposed-modules:
@@ -70,6 +70,7 @@ common day
     hs-source-dirs:     src
     build-depends:      base ^>= {4.17, 4.18, 4.19, 4.20}, common, containers
     default-language:   Haskell2010
+    ghc-options:        -threaded
 
 executable day01
     import:           day
@@ -90,3 +91,8 @@ executable day04
     import:           day
     main-is:          04.hs
     build-depends:    array
+
+executable day05
+    import:           day
+    main-is:          05.hs
+    build-depends:    bytestring
