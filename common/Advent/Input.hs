@@ -11,4 +11,5 @@ readInput = do
 readInputLines :: IO [B.ByteString]
 readInputLines = do
     args <- SE.getArgs
-    B.split 10 <$> B.readFile (head args)
+    lines <- B.split 10 <$> B.readFile (head args)
+    return $ filter (not . B.null) lines

@@ -11,7 +11,7 @@ fromLines :: [C.ByteString] -> Array (Int, Int) Char
 fromLines lines = listArray (linesBounds lines) (C.unpack $ C.concat $ C.transpose lines)
 
 enumerate :: [a] -> [(Int, a)]
-enumerate xs = zip [0..] xs
+enumerate = zip [0..]
 
 --withCoords :: [[a]] -> [(Int, Int), a]
 withCoords lines = [((i, j), c) | (i, line) <- enumerate lines, (j, c) <- enumerate line]

@@ -53,6 +53,53 @@ allRotationsAround o points = take 4 $ iterate (map (rotateLAround o)) points
 
 --data Direction = North | East | South | West
 data Direction = North | NorthEast | East | SouthEast | South | SouthWest | West | NorthWest
+    deriving (Show, Eq, Ord)
+
+rotateDirR dir = case dir of
+    North -> East
+    East -> South
+    South -> West
+    West -> North
+    _ -> undefined
+
+rotateDirL dir = case dir of
+    North -> West
+    East -> North
+    South -> East
+    West -> South
+    _ -> undefined
+
+reflectDir dir = case dir of
+    North -> South
+    East -> West
+    South -> North
+    West -> East
+    _ -> undefined
+
+isDirection :: Char -> Bool
+isDirection c = c == '^' || c == '>' || c == 'v' || c == '<'
+
+dirFromChar :: Char -> Direction
+dirFromChar c = case c of
+    '^' -> North
+    '>' -> East
+    'v' -> South
+    '<' -> West
+    _ -> undefined
+
+dirVec :: (Num a, Num b) => Direction -> (a, b)
+dirVec d = case d of
+    North     -> ( 0, -1)
+    NorthEast -> ( 1, -1)
+    East      -> ( 1,  0)
+    SouthEast -> ( 1,  1)
+    South     -> ( 0,  1)
+    SouthWest -> (-1,  1)
+    West      -> (-1,  0)
+    NorthWest -> (-1, -1)
+
+step :: Coord -> Direction -> Coord
+step p d = p + dirVec d
 
 type DirIterator = ((Int, Int), (Int, Int)) -> [[(Int, Int)]]
 
