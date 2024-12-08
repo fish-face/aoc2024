@@ -99,3 +99,8 @@ executable day05
 executable day06
     import:           day
     main-is:          06.hs
+
+executable day07
+    import:           day
+    main-is:          07.hs
+    build-depends:    bytestring-conversion
