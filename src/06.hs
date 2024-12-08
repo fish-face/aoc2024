@@ -2,8 +2,11 @@ module Main where
 
 import Debug.Trace
 import Prelude hiding (lookup)
-import qualified Data.Set as Set (Set, insert, size, empty)
-import Data.Map hiding ((!), filter, map)
+--import qualified Data.Set as Set (Set, insert, size, empty)
+import Data.Set
+import Data.Map (Map)
+import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map.Strict
 import Data.Array hiding (assocs)
 import Data.List (find)
 import qualified Data.ByteString as B
@@ -14,34 +17,17 @@ import Advent
 import Advent.Input
 import Advent.Grid
 import Advent.Coord
-
-data History = History (Map (Coord, Direction) Int) (Map (Coord, Direction) Int)
-    deriving (Show)
-
-newHistory = History empty empty
-
-seen (History s _) = s
-collisions (History _ c) = c
-
-insertStep (History seen collisions) pos dir n = History (insert (pos, dir) n seen) collisions
-getStep (History seen _) (pos, dir) = lookup (pos, dir) seen
-hasStep (History seen _) (pos, dir) = member (pos, dir) seen
-insertCollision (History seen collisions) pos dir n = History seen (insert (pos, dir) n collisions)
-getCollision (History _ collisions) pos dir = lookup (pos, dir) collisions
-hasCollision (History _ collisions) (pos, dir) = member (pos, dir) collisions
-colls (History _ collisions) = assocs collisions
+import Control.Exception (ArithException(LossOfPrecision))
 
 main :: IO ()
 main = do
     input <- readInputLines
     let
         (pos, dir) = findStart input
---        cleaned = clean input pos
         grid = fromLines input
-    putStr $ toString grid
-    print (pos, dir)
-    print $ part1 grid Set.empty $ Just (pos, dir)
-    print $ part2 grid newHistory $ Just (pos, dir)
+    let Leave res histP histPD = walk grid Map.empty Map.empty (pos, dir)
+    print res
+    print $ part2 grid (pos, dir) histP histPD
 
 findStart :: [C.ByteString] -> (Coord, Direction)
 findStart input = let
@@ -62,75 +48,96 @@ findIVBS p s = let res = C.findIndex p s in
         Just idx -> Just (idx, s `C.index` idx)
         Nothing -> Nothing
 
-walk :: Array Coord Char -> Coord -> Direction -> Maybe (Coord, Direction)
-walk grid pos dir = let
-        next = step pos dir in
-    if inRange (bounds grid) next then
-        if grid ! next == '#' then
-            Just (step pos (rotateDirR dir), rotateDirR dir)
-        else
-            Just (next, dir)
-    else Nothing
+--walk :: Array Coord Char -> Coord -> Direction -> Maybe (Coord, Direction)
+--walk grid pos dir = let
+--        next = step pos dir in
+--    if inRange (bounds grid) next then
+--        if grid ! next == '#' then
+--            Just (step pos (rotateDirR dir), rotateDirR dir)
+--        else
+--            Just (next, dir)
+--    else Nothing
 
---part1 grid pos dir = let
---    next = walk grid pos dir in
---    maybe 0 (\next' -> 1 + part1 grid) next
+data WalkResult = Leave Int (Map Coord Int) (Map (Coord, Direction) Int) | Loop
+    deriving (Show, Eq)
 
-part1 :: Array Coord Char -> Set.Set Coord -> Maybe (Coord, Direction) -> Int
-part1 grid seen state = case state of
-    Just (pos, dir) -> part1 grid (Set.insert pos seen) (walk grid pos dir)
-    Nothing -> Set.size seen
---part1 _ Nothing = 0
---part1 grid Just (pos, dir) = 1 + part1 grid $ walk grid pos dir
+walk :: Grid Char -> Map Coord Int -> Map (Coord, Direction) Int -> (Coord, Direction) -> WalkResult
+walk grid histP histPD (pos, dir) = go grid histP histPD (pos, dir) 0 where
+    go :: Grid Char -> Map Coord Int -> Map (Coord, Direction) Int -> (Coord, Direction) -> Int -> WalkResult
+    go grid histP histPD (pos, dir) n = let
+            nexthistP = Map.Strict.insertWith (\a b -> b) pos n histP :: Map Coord Int
+            nexthistPD = Map.insert (pos, dir) n histPD
+--            nexthistPD = insert (pos, dir) histPD
+            next = getNext grid pos dir in
+        case next of
+            Just pd ->
+                if pd `Map.member` histPD then Loop --`debug` printPoints grid histP
+                else go grid nexthistP nexthistPD pd (n+1) --`debug` (show pd ++ " " ++ (show (n + 1)))
+            Nothing -> Leave (Map.size histP + 1) histP histPD
 
---add pos set = let
---    origSize = size set
---    added = insert pos set in
---    if origSize == size added then
---        added `debug` (show pos)
---    else
---        added
+getNext :: Grid Char -> Coord -> Direction -> Maybe (Coord, Direction)
+getNext grid pos dir = let
+        candidates = Prelude.map (\d -> (step pos d, d)) [dir, rotateDirR dir, reflectDir dir]
+        oob = find (\(p, d) -> not (inRange (bounds grid) p)) $ candidates
+        found = find (\(p, d) -> ((grid ! p) /= '#')) $ candidates
+    in
+    if isJust oob then Nothing
+    else found
 
-walk2 :: Array Coord Char -> History -> Coord -> Direction -> Int -> (History, Maybe (Coord, Direction))
-walk2 grid history pos dir n = let
-        next = step pos dir in --`debug` show (pos, dir) in
-    if inRange (bounds grid) next then
-        if grid ! next == '#' then
---            let stepped = insertStep history (pos, dir) in
-            (insertCollision history pos dir n, Just (pos, rotateDirR dir))
-        else
-            (insertStep history next dir n, Just (next, dir))
-    else (history, Nothing)
+printPoints :: Grid Char -> Map Coord a -> String
+printPoints grid points =
+    concat [if x == width then [charAt (x, y), '\n'] else [charAt (x, y)] | (x, y) <- coords]
+    where (_, (_, width)) = bounds grid
+          coords = concat $ iterateEast $ bounds grid
+--          charAt pos = maybe (grid ! pos) (const 'X') (find (\p -> p == pos) points)
+          charAt :: Coord -> Char
+          charAt pos = if Map.member pos points then 'X' else (grid ! pos)
 
-part2 :: Array Coord Char -> History -> Maybe (Coord, Direction) -> Int
-part2 grid history state =
-    go grid history state 0 where
-        go grid history state n = case state of
-            Just (pos, dir) -> let (nexthist, nextstate) = walk2 grid history pos dir n in
-                go grid nexthist nextstate (n + 1)
-            Nothing -> traceShowId (part2analyse grid history)
+part2 :: Grid Char -> (Coord, Direction) -> Map Coord Int -> Map (Coord, Direction) Int -> Int
+part2 grid start histP histPD = 1 + (sum $ Prelude.map (
+        fromEnum . testLoop grid start histP
+    ) $ Map.keys histP)
+--part2 grid start histP histPD = go empty (Map.assocs histPD)
+--    where go :: Set Coord -> [((Coord, Direction), Int)] -> Int
+--          go found [] = 1 + size found
+--          go found (x:xs) = go (testLoop grid found start histP x) xs
 
-part2analyse :: Array Coord Char -> History -> Int
-part2analyse grid history = let
-        canCreateLoop = map (analyseCollision grid history) (colls history) in
-    sum canCreateLoop `debug` show (canCreateLoop)
+testLoop :: Grid Char -> (Coord, Direction) -> Map Coord Int -> Coord -> Bool
+testLoop grid start histP obstacle =
+    let
+        res = walk (grid // [(obstacle, '#')]) Map.empty Map.empty start
+    in
+    res == Loop
 
-analyseCollision :: Array Coord Char -> History -> ((Coord, Direction), Int) -> Int
-analyseCollision grid history ((pos, dir), n) = let
-        onRoute = accumUntil
-            (\ p -> not (inRange (bounds grid) p) || grid ! p == '#')
-            (`step` reflectDir dir)
-            pos
-        overlaps = map (isOverlap history n dir) onRoute `debug` ("collision at " ++ show (pos, dir) ++ "\n\t" ++ show (rotateDirL dir, onRoute)) in
-    sum $ map fromEnum overlaps `debug` ("overlap\n\t" ++ show (map fromEnum overlaps))
+--testLoop grid found start histP ((p, dir), n) =
+--    let
+--        (startP, _) = start
+--        candidateObstacle = p
+----        res = walk (grid // [(candidateObstacle, '#')]) Map.empty Map.empty (p, rotateDirR dir)
+--        res = walk (grid // [(candidateObstacle, '#')]) Map.empty Map.empty start
+----        res = walk grid Map.empty (Map.singleton (p, dir) 0) (p, rotateDirR dir)
+--        doIt = if res == Loop then --`debug` ("test " ++ show (candidateObstacle, p, dir) ++ " = " ++ (if res == Loop then show res else "Leave")) then
+--            insert candidateObstacle found
+--        else found
+--        in
+----    if candidateObstacle == startP || grid ! candidateObstacle == '#' then found
+----    else case Map.lookup candidateObstacle histP of
+----        Just m ->
+------            if m < n then False -- we travelled through the candidate obstacle already so it would have altered the path getting here and cannot test it
+----            if False then found
+----            else doIt
+----        otherwise -> doIt
+--    doIt
 
-isOverlap :: History -> Int -> Direction -> Coord -> Bool
-isOverlap history n dir p = let candidate = (p, rotateDirL dir) in
-        hasStep history candidate && unwrap (getStep history candidate) > n && not (hasCollision history candidate)
---    onRoute `debug` ("collision at " ++ show (pos, dir) ++ "\n\t" ++ show (rotateDirL dir, onRoute))
+-- get all the points in line with the obstacles, pointing towards the obstacle
+--getCrossings ::Grid char -> Map (pos, dir) ()
+--getCrossings grid = map getCrossingForPoint (Data.Array.assocs grid) where
+--    getCrossingForPoint (pos, c) = case c of
+--        '#' ->
+--        _ -> []
 
-accumUntil :: (t -> Bool) -> (t -> t) -> t -> [t]
-accumUntil p f a = a:go a
-  where
-    go x | p x          = []
-         | otherwise    = accumUntil p f (f x)
+--accumUntil :: (t -> Bool) -> (t -> t) -> t -> [t]
+--accumUntil p f a = a:go a
+--  where
+--    go x | p x          = []
+--         | otherwise    = accumUntil p f (f x)
