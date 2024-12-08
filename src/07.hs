@@ -43,7 +43,7 @@ part2 eqs = sum $ map (\(t, ops) -> t * (fromEnum $ testp2 t (reverse ops))) eqs
 testp2 :: Int -> [Int] -> Bool
 testp2 target [x] = x == target
 testp2 target (x:xs) = let
-        addOutcome = (testp2 (target - x) xs) :: Bool
+        addOutcome = if x < target then (testp2 (target - x) xs) else False
         mulOutcome = if x `divides` target then (testp2 (target `div` x) xs) else False :: Bool
         catOutcome = let
                 strx = C.pack $ show x :: C.ByteString
