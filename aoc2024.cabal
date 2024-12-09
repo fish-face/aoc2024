@@ -68,7 +68,7 @@ library common
 common day
     import:             warnings
     hs-source-dirs:     src
-    build-depends:      base ^>= {4.17, 4.18, 4.19, 4.20}, common, containers, bytestring, array
+    build-depends:      base ^>= {4.17, 4.18, 4.19, 4.20}, common, containers, bytestring, array, vector
     default-language:   Haskell2010
     ghc-options:        -threaded
 
@@ -108,3 +108,7 @@ executable day07
 executable day08
     import:           day
     main-is:          08.hs
+
+executable day09
+    import:           day
+    main-is:          09.hs
