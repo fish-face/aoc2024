@@ -12,7 +12,8 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.PQueue.Min
+import Data.Set (Set)
+import qualified Data.Set as Set
 
 import Advent
 import Advent.Input
@@ -40,7 +41,10 @@ cycleN _ [] = []
 cycleN 0 _  = []
 cycleN n xs = xs ++ cycleN (n-1) xs
 
-type Space = MinQueue (Int, Int)
+-- (location, size), size: smallest loc of that size
+type Space = Vector (Int, Int) Vector Int
+
+spaceFromList xs = (Space V.fromList xs V.fromList [findIndex (\(loc, size) -> size >= tSize) | tSize <- [0..9])
 
 main :: IO ()
 main = do
@@ -59,22 +63,16 @@ main = do
 --        blocks = zipWith (curry (uncurry (block))) [0..] nums
         makeblocksverygood = zip (zip [0..] nums) locations :: [((Int, Int), Int)]
         blocks = map (uncurry (uncurry (block))) makeblocksverygood :: [Block]
-        enumeratedSizes = zip [0..] $ zip nums locations :: [(Int, (Int, Int))]
-        blankLocations = Map.fromList [(size, []) | size <- [0..9]]
-        emptyLocations = [(size, [loc]) | (i, (size, loc)) <- enumeratedSizes, i `mod` 2 == 1]
---        withLocations = zip locations blocks
---        emptyBlocks = filter (\(_, b) -> isEmpty b) withLocations
---        emptySizes = map (\(_, b) -> bSize b) emptyBlocks
---        bySize = zip emptySizes $ map (\x -> [x]) emptyBlocks
-        spaces' = Map.fromListWith (++) $ reverse emptyLocations
-        spaces = Map.unionWith (++) blankLocations spaces'
+        enumeratedSizes = zip [0..] $ zip locations nums :: [(Int, (Int, Int))]
+        emptyLocations = [(loc, size) | (i, (loc, size)) <- enumeratedSizes, i `mod` 2 == 1]
+        spaces = Set.fromList emptyLocations
 --    print locations
 --    print spaces
 --    print blocks
     print $ part1 blocks
 --    print memory`
 --    print $ part1old memory
-    print $ part2 spaces (reverse blocks)
+--    print $ part2 spaces (reverse blocks)
 
 readCharInt :: Char -> Int
 readCharInt c = fromEnum c - 48
@@ -127,40 +125,21 @@ checksumContrib' :: Int -> Block -> Int
 checkusmContrib' _ (Empty _) = error "bad"
 checksumContrib' idx (File size id _) = size * (2 * id * idx + (size - 1) * id) `div` 2
 
-part1old :: V.Vector Int -> Int
-part1old memory = let
-        Just firstFree = V.findIndex (== (-1)) memory
-        Just lastOcc = V.findIndexR (/= (-1)) memory
-        (defragged, final) = defragp1 memory firstFree lastOcc --`debug` (show (firstFree, lastOcc))
-        enumerated = Prelude.zip (V.toList (V.take (final + 2) defragged)) [0..]
-        muls = Prelude.map (uncurry (*)) enumerated
-    in
-    Prelude.sum $ muls --`debug` (show muls)
-
-defragp1 :: V.Vector Int -> Int -> Int -> (V.Vector Int, Int)
-defragp1 memory firstFree lastOcc =
-    if firstFree >= lastOcc then (memory, lastOcc)
-    else let
-            newmem = (memory V.// [(firstFree, memory V.! lastOcc), (lastOcc, -1)])
-            Just newFF' = V.findIndex (== (-1)) (V.drop (firstFree + 1) memory)
-            newFF = firstFree + 1 + newFF'
-            Just newLO = V.findIndexR (/= (-1)) (V.take lastOcc memory)
-        in defragp1 newmem newFF newLO --`debug` (show newmem)
-
-part2 :: Map Int [Int] -> [Block] -> Int
+part2 :: Space -> [Block] -> Int
 part2 spaces [] = 0
 part2 spaces ((Empty _):blocks) = part2 spaces blocks
 part2 spaces ((File size id startloc):blocks) = let
+--        maybeTarget = Set.lookupGE size spaces
         maybeTarget = findSpace spaces size
     in
-    trace ("considering file " ++ (show (File size id startloc)) ++ " with space:\n" ++ (show spaces)) (
+--    trace ("considering file " ++ (show (File size id startloc)) ++ " with space:\n" ++ (show spaces)) (
     case maybeTarget of
-        Just (targetSize, _) -> let targetLoc = head (spaces Map.! targetSize) :: Int in
+        Just (targetLoc, targetSize) ->
             if targetLoc < startloc then
                 -- moving file to some location with targetSize gap
                 let
                     -- remove at old size
-                    removedSpace = Map.adjust tail targetSize spaces
+                    removedSpace = Set.delete (targetLoc, targetSize) spaces
                     nextSpaces = if targetSize == size then
                             -- exactly filling space
                             removedSpace
@@ -170,18 +149,19 @@ part2 spaces ((File size id startloc):blocks) = let
                                 newLoc = targetLoc + size
                             in
                             -- add at new size
-                            Map.adjust (sort . cons newLoc) newSize removedSpace
+                            Set.insert (newLoc, newSize) removedSpace
                 in
-                checksumContrib (File size id targetLoc) + (part2 nextSpaces blocks) `debug` ("  moving to " ++ show targetLoc)
+                checksumContrib (File size id targetLoc) + (part2 nextSpaces blocks) --`debug` ("  moving to " ++ show targetLoc)
             else
                 -- not moving file
-                checksumContrib (File size id startloc) + (part2 spaces blocks) `debug` "  leaving (space -->)"
-        Nothing -> checksumContrib (File size id startloc) + (part2 spaces blocks) `debug` "  leaving"
-        )
+                checksumContrib (File size id startloc) + (part2 spaces blocks) --`debug` "  leaving (space -->)"
+        Nothing -> checksumContrib (File size id startloc) + (part2 spaces blocks) --`debug` "  leaving"
+--        )
 part2 a b = error $ show (a, b)
 
 -- searches `spaces` for a key >= the given integer
-findSpace :: Map Int [Int] -> Int -> Maybe (Int, Bool)
-findSpace spaces req = find (\(i, found) -> found && (not $ null (spaces Map.! i))) [(i, Map.member i spaces)| i<-[req..9]]
+findSpace :: Space -> Int -> Maybe (Int, Int)
+findSpace spaces req = find (\(_, size) -> size >= req) $ Set.elems spaces
+--find (\(i, found) -> found && (not $ null (spaces Map.! i))) [(i, Map.member i spaces)| i<-[req..9]]
 
 cons x xs = (x:xs)
