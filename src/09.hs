@@ -42,9 +42,8 @@ cycleN 0 _  = []
 cycleN n xs = xs ++ cycleN (n-1) xs
 
 -- (location, size), size: smallest loc of that size
-type Space = Vector (Int, Int) Vector Int
+type Space = Set (Int, Int)
 
-spaceFromList xs = (Space V.fromList xs V.fromList [findIndex (\(loc, size) -> size >= tSize) | tSize <- [0..9])
 
 main :: IO ()
 main = do
@@ -72,7 +71,7 @@ main = do
     print $ part1 blocks
 --    print memory`
 --    print $ part1old memory
---    print $ part2 spaces (reverse blocks)
+    print $ part2 spaces (reverse blocks)
 
 readCharInt :: Char -> Int
 readCharInt c = fromEnum c - 48
