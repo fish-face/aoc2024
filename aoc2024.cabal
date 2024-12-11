@@ -116,3 +116,8 @@ executable day09
 executable day10
     import:           day
     main-is:          10.hs
+
+executable day11
+    import:           day
+    main-is:          11.hs
+    build-depends:    memoize
