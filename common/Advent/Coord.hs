@@ -51,6 +51,12 @@ allRotations points = take 4 $ iterate (map rotateL) points
 allRotationsAround :: Coord -> [Coord] -> [[Coord]]
 allRotationsAround o points = take 4 $ iterate (map (rotateLAround o)) points
 
+neighbours :: Coord -> [Coord]
+neighbours p = [p + (1, 0), p + (0, 1), p + (-1, 0), p + (0, -1)]
+
+neighboursIn :: (Coord, Coord) -> Coord -> [Coord]
+neighboursIn range = filter (inRange range) . neighbours
+
 --data Direction = North | East | South | West
 data Direction = North | NorthEast | East | SouthEast | South | SouthWest | West | NorthWest
     deriving (Show, Eq, Ord)
