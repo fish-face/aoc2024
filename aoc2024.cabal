@@ -120,4 +120,4 @@ executable day10
 executable day11
     import:           day
     main-is:          11.hs
-    build-depends:    memoize
+    build-depends:    uglymemo
