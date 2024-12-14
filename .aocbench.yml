@@ -12,5 +12,4 @@ daypath: src/%zeroday%.hs
 inputfile: inputs/%zeroday%.txt
 answerfile: answers/%zeroday%.txt
 common:
-  - aoc2024.cabal
   - common

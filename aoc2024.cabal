@@ -121,3 +121,8 @@ executable day11
     import:           day
     main-is:          11.hs
     build-depends:    uglymemo
+
+executable day12
+    import:           day
+    main-is:          12.hs
+    other-modules:    Twelve.Lut

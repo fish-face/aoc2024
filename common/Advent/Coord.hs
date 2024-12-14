@@ -54,6 +54,18 @@ allRotationsAround o points = take 4 $ iterate (map (rotateLAround o)) points
 neighbours :: Coord -> [Coord]
 neighbours p = [p + (1, 0), p + (0, 1), p + (-1, 0), p + (0, -1)]
 
+neighbours8 :: Coord -> [Coord]
+neighbours8 p = [
+        p + (1, 0),
+        p + (1, 1),
+        p + (0, 1),
+        p + (-1, 1),
+        p + (-1, 0),
+        p + (-1, -1),
+        p + (0, -1),
+        p + (1, -1)
+    ]
+
 neighboursIn :: (Coord, Coord) -> Coord -> [Coord]
 neighboursIn range = filter (inRange range) . neighbours
 
