@@ -126,3 +126,8 @@ executable day12
     import:           day
     main-is:          12.hs
     other-modules:    Twelve.Lut
+
+executable day13
+    import:           day
+    main-is:          13.hs
+    build-depends:    split, pcre-heavy
