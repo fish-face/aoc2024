@@ -3,8 +3,11 @@
 {-# LANGUAGE InstanceSigs #-}
 module Advent.Coord where
 
+import qualified Data.Set as Set
 import Data.List
 import Data.Ix
+
+import Advent
 
 type Coord = (Int, Int)
 
@@ -32,6 +35,12 @@ mapCoord f (x, y) = (f x, f y)
 
 zipCoord :: (Int -> Int -> Int) -> Coord -> Coord -> Coord
 zipCoord f (x1, y1) (x2, y2) = (f x1 x2, f y1 y2)
+
+mapXY :: (Int -> Int) -> (Int -> Int) -> Coord -> Coord
+mapXY f g (x, y) = (f x, g y)
+
+flipCoord :: Coord -> Coord
+flipCoord (x, y) = (y, x)
 
 rotateR :: Coord -> Coord
 rotateR (x, y) = (-y, x)
@@ -176,3 +185,16 @@ iterateSouthEast bounds = [
           h = ymax - ymin
           slices = w + h
           sideMin = min w h
+
+printPointSet :: Coord -> Set.Set Coord -> String
+printPointSet (width, height) points =
+    concat [if x == width then [charAt (x, y), '\n'] else [charAt (x, y)] | (x, y) <- coords] `debug` (show (range ((0, 0), (width, height))))
+    where coords = range ((0, 0), (width, height))
+          charAt :: Coord -> Char
+          charAt pos = if Set.member pos points then 'X' else '.'
+
+printPoints :: Coord -> [Coord] -> String
+printPoints (width, height) points =
+    concat [if x == width then [charAt (x, y), '\n'] else [charAt (x, y)] | y <- [0..height], x <- [0..width]]
+    where charAt :: Coord -> Char
+          charAt pos = if elem pos points then 'X' else '.'
