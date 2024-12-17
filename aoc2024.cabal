@@ -136,3 +136,7 @@ executable day14
     import:           day
     main-is:          14.hs
     build-depends:    pcre-heavy
+
+executable day15
+    import:           day
+    main-is:          15.hs
