@@ -25,7 +25,7 @@ linesBounds lines = ((0, 0), (C.length (head lines) - 1, length lines - 1))
 
 toString :: Grid Char -> String
 toString grid = concat [if x == width then [grid ! (x, y), '\n'] else [grid ! (x, y)] | (x, y) <- coords]
-    where (_, (_, width)) = bounds grid
+    where (_, (width, height)) = bounds grid
           coords = concat $ iterateEast $ bounds grid
 
 --printPointsOn :: Grid Char -> Map Coord a -> String

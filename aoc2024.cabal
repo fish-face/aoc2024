@@ -140,3 +140,4 @@ executable day14
 executable day15
     import:           day
     main-is:          15.hs
+    build-depends:    stringsearch
