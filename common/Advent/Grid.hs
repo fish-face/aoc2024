@@ -1,6 +1,6 @@
 module Advent.Grid where
 
-import Data.Array
+import Data.Array.IArray
 import Data.List
 import qualified Data.ByteString.Char8 as C
 
@@ -27,6 +27,10 @@ toString :: Grid Char -> String
 toString grid = concat [if x == width then [grid ! (x, y), '\n'] else [grid ! (x, y)] | (x, y) <- coords]
     where (_, (width, height)) = bounds grid
           coords = concat $ iterateEast $ bounds grid
+
+printBoolGrid :: Grid Bool -> String
+printBoolGrid grid = let charGrid = amap (\x -> if x then '#' else '.') grid in
+    toString charGrid
 
 --printPointsOn :: Grid Char -> Map Coord a -> String
 --printPointsOn grid points =

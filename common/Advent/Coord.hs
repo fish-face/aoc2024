@@ -6,6 +6,7 @@ module Advent.Coord where
 import qualified Data.Set as Set
 import Data.List
 import Data.Ix
+import qualified Data.ByteString.Char8 as C
 
 import Advent
 
@@ -77,6 +78,13 @@ neighbours8 p = [
 
 neighboursIn :: (Coord, Coord) -> Coord -> [Coord]
 neighboursIn range = filter (inRange range) . neighbours
+
+parseCoord :: C.ByteString -> Coord
+parseCoord str = let
+        [a, b] = C.split ',' str
+        Just (x, _) = C.readInt a
+        Just (y, _) = C.readInt b
+    in (x, y)
 
 --data Direction = North | East | South | West
 data Direction = North | NorthEast | East | SouthEast | South | SouthWest | West | NorthWest

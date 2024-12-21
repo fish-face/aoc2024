@@ -151,3 +151,8 @@ executable day17
     import:           day
     main-is:          17.hs
     build-depends:    split, ghc
+
+executable day18
+    import:           day
+    main-is:          18.hs
+    build-depends:    pqueue, binary-search
