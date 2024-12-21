@@ -23,14 +23,14 @@ main = do
     input <- readInput
     let
         (partsLine, patternsLines) = C.breakSubstring "\n\n" input
-        parts = map C.unpack $ split ", " partsLine
-        patterns = map C.unpack $ C.lines $ C.strip patternsLines
+        parts = split ", " partsLine
+        patterns = C.lines $ C.strip patternsLines
         possibilities = map (numMatches parts) patterns
     print $ length $ filter (/= 0) possibilities
     print $ sum possibilities
 
-numMatches :: [String] -> String -> Int
+numMatches :: [C.ByteString] -> C.ByteString -> Int
 numMatches = curry $ memo $ uncurry inner
     where
         inner parts "" = 1
-        inner parts s = sum $ map (numMatches parts) $ catMaybes $ map (\p -> stripPrefix p s) parts
+        inner parts s = sum $ map (numMatches parts) $ catMaybes $ map (\p -> C.stripPrefix p s) parts
