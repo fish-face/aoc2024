@@ -146,3 +146,8 @@ executable day16
     import:           day
     main-is:          16.hs
     build-depends:    pqueue, ghc
+
+executable day17
+    import:           day
+    main-is:          17.hs
+    build-depends:    split, ghc
