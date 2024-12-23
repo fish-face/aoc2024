@@ -9,7 +9,7 @@ persistence:
   - /root/.local/
 code: /code
 workdir: /code
-runonce: cabal build -O2 day%zeroday%
+runonce: cabal update && cabal build -O2 day%zeroday%
 prerun: ln -s $(cabal list-bin -O2 day%zeroday%) /tmp/cmd
 cmd: /tmp/cmd inputs/%zeroday%.txt
 daypath: src/%zeroday%.hs
