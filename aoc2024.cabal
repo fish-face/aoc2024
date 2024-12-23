@@ -161,3 +161,7 @@ executable day19
     import:           day
     main-is:          19.hs
     build-depends:    stringsearch, uglymemo
+
+executable day20
+    import:           day
+    main-is:          20.hs

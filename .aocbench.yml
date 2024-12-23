@@ -3,6 +3,10 @@ author: Fish-Face
 language: Haskell
 dockerfile: .docker/Dockerfile
 #image: haskell
+persistence:
+  - /code/dist-newstyle/
+  - /root/.cache/
+  - /root/.local/
 code: /code
 workdir: /code
 runonce: cabal build -O2 day%zeroday%

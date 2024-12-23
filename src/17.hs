@@ -63,7 +63,7 @@ main = do
         part1 = execute prog (State 0 a b c) []
 --    print (a, b, c, prog)
     putStrLn $ C.unpack $ C.intercalate "," $ map (C.pack . show) part1
-    print $ map Just $ part2 prog
+    print $ part2 prog
 
 parseReg :: C.ByteString -> Int
 parseReg = parseInt . C.drop 12
@@ -194,7 +194,7 @@ part2 prog = let
     --        test nums a = (take 2 nums) == (take (min 2 (length nums)) $ testExec a) --`debug` ("targ: " ++ (show (take 2 nums)) ++ " a: " ++ (show a) ++ " res: " ++ (show (take 2 $ testExec a)))
             test nums a = (head nums) == (head $ testExec a) --`debug` ("targ: " ++ (show (head nums)) ++ " a: " ++ (show $ Just a) ++ " res: " ++ (show (head $ testExec a)))
 --            as = [3773, 3543]
-            recurse a = go (tail nums) ((a `shiftR` 3) .&. 4095) 12
+            recurse a = go (tail nums) ((a `shiftR` 3) .&. 4095) 9
             valid = filter (test nums) as :: [Int]
 --            results = map (\v -> if isJust (recurse v) then Just (v .&. 7:(fromJust $ recurse v)) else Nothing) valid :: [Maybe [Int]]
             results = map (\v -> do { recursed <- recurse v; return (v .&. 7:recursed) } ) valid :: [Maybe [Int]]

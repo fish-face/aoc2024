@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances #-}
+
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE InstanceSigs #-}
 module Advent.Coord where
@@ -85,6 +85,12 @@ parseCoord str = let
         Just (x, _) = C.readInt a
         Just (y, _) = C.readInt b
     in (x, y)
+
+manhattan :: Coord -> Coord -> Int
+manhattan (x1, y1) (x2, y2) = abs (x1 - x2) + abs (y1 - y2)
+
+manhattanRange :: Int -> Coord -> [Coord]
+manhattanRange d p = [p' | p' <- range (p - (d, d), p + (d, d)), manhattan p p' <= d]
 
 --data Direction = North | East | South | West
 data Direction = North | NorthEast | East | SouthEast | South | SouthWest | West | NorthWest
@@ -196,7 +202,7 @@ iterateSouthEast bounds = [
 
 printPointSet :: Coord -> Set.Set Coord -> String
 printPointSet (width, height) points =
-    concat [if x == width then [charAt (x, y), '\n'] else [charAt (x, y)] | (x, y) <- coords] `debug` (show (range ((0, 0), (width, height))))
+    concat [if x == width then [charAt (x, y), '\n'] else [charAt (x, y)] | (x, y) <- coords] `debug` show (range ((0, 0), (width, height)))
     where coords = range ((0, 0), (width, height))
           charAt :: Coord -> Char
           charAt pos = if Set.member pos points then 'X' else '.'
@@ -205,4 +211,4 @@ printPoints :: Coord -> [Coord] -> String
 printPoints (width, height) points =
     concat [if x == width then [charAt (x, y), '\n'] else [charAt (x, y)] | y <- [0..height], x <- [0..width]]
     where charAt :: Coord -> Char
-          charAt pos = if elem pos points then 'X' else '.'
+          charAt pos = if pos `elem` points then 'X' else '.'
