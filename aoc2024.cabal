@@ -165,3 +165,7 @@ executable day19
 executable day20
     import:           day
     main-is:          20.hs
+
+executable day21
+    import:           day
+    main-is:          21.hs

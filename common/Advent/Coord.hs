@@ -139,8 +139,28 @@ dirVec d = case d of
     West      -> (-1,  0)
     NorthWest -> (-1, -1)
 
+vecDir :: Coord -> Direction
+vecDir v = case v of
+    ( 0, -1) -> North
+    ( 1, -1) -> NorthEast
+    ( 1,  0) -> East
+    ( 1,  1) -> SouthEast
+    ( 0,  1) -> South
+    (-1,  1) -> SouthWest
+    (-1,  0) -> West
+    (-1, -1) -> NorthWest
+    _ -> error ("not a 'unit' vector: " ++ show v)
+
 step :: Coord -> Direction -> Coord
 step p d = p + dirVec d
+
+walk :: Coord -> [Direction] -> Coord
+walk = foldl' step
+
+walkAll :: Coord -> [Direction] -> [Coord]
+walkAll start dirs = reverse $ snd $ foldl' walkAcc (start, []) dirs where
+    walkAcc :: (Coord, [Coord]) -> Direction -> (Coord, [Coord])
+    walkAcc (p, ps) d = (step p d, step p d:ps)
 
 type DirIterator = ((Int, Int), (Int, Int)) -> [[(Int, Int)]]
 
