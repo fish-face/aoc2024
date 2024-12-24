@@ -27,6 +27,7 @@ import qualified Data.ByteString.Char8 as C
 
 import Advent
 import Advent.Input
+import GHC.Platform (Arch(ArchS390X))
 
 type Op = Int
 
@@ -50,7 +51,7 @@ main :: IO ()
 main = do
     input <- readInputLines
     let
-        regALine = input !! 0
+        regALine = head input
         regBLine = input !! 1
         regCLine = input !! 2
         progLine = input !! 4
@@ -73,7 +74,7 @@ parseProg line = let
         relevant = C.drop 9 line
         digs = C.split ',' relevant
     in
-    V.fromList $ map (parseInt) digs
+    V.fromList $ map parseInt digs
 
 parseInt = fst . fromJust . C.readInt
 
@@ -82,7 +83,7 @@ execute prog state@(State p a b c) output = if p >= V.length prog then reverse o
     else let
             (nextState, out) = step prog state
             nextOut = case out of
-                Just (out') -> (out':output)
+                Just out' -> out':output
                 Nothing -> output
         in execute prog nextState nextOut
 
@@ -96,7 +97,7 @@ step prog state@(State i a b c) = let
 --    swap $ traceShowId $ swap $
     if
         | op == 0 -> -- adv
-            (state {iPtr = stepPtr, regA = (a `shiftR` comboval)}, Nothing)
+            (state {iPtr = stepPtr, regA = a `shiftR` comboval}, Nothing)
         | op == 1 -> -- bxl
             (state {iPtr = stepPtr, regB = b `xor` opval}, Nothing)
         | op == 2 -> -- bst
@@ -111,10 +112,10 @@ step prog state@(State i a b c) = let
         | op == 5 -> -- out
             (state {iPtr = stepPtr}, Just (comboval `mod` 8))
         | op == 6 -> -- bdv
-            (state {iPtr = stepPtr, regB = (a `shiftR` comboval)}, Nothing)
+            (state {iPtr = stepPtr, regB = a `shiftR` comboval}, Nothing)
         | op == 7 -> -- cdv
-            (state {iPtr = stepPtr, regC = (a `shiftR` comboval)}, Nothing)
-        | otherwise -> error ("invalid opcode at " ++ (show i))
+            (state {iPtr = stepPtr, regC = a `shiftR` comboval}, Nothing)
+        | otherwise -> error ("invalid opcode at " ++ show i)
 
 getComboValue :: Int -> State -> Int
 getComboValue v state@(State i a b c) = if
@@ -125,14 +126,14 @@ getComboValue v state@(State i a b c) = if
     | v == 4 -> a
     | v == 5 -> b
     | v == 6 -> c
-    | otherwise -> error ("invalid combo code " ++ (show v))
+    | otherwise -> error ("invalid combo code " ++ show v)
 
 printWord :: Int -> String
-printWord x = printf "%03b" x
+printWord = printf "%03b"
 
 printWords :: Int -> String
 printWords x = let bin = printf "%03b" x in
-    reverse $ intercalate " " $ chunksOf 3 $ reverse bin
+    reverse $ unwords $ chunksOf 3 $ reverse bin
 
 swap (a, b) = (b, a)
 
@@ -179,31 +180,31 @@ swap (a, b) = (b, a)
 
 part2 prog = let
         prog' = V.toList prog
+        testExec a = execute prog (State 0 a 0 0) []
     in
-    fromJust $ go prog' 0 0 where
-    go :: [Int] -> Int -> Int -> Maybe [Int]
-    go [] _ _ = Just []
-    go nums fixed fixedBits = let
---            remainingBits = 10 - fixedBits
---            vMin = max 64 (1 `shiftL` (fixedBits - 1))
-            vMax = 4095 `shiftR` fixedBits :: Int
-            as = map (\v -> (v `shiftL` fixedBits) + fixed) [0..vMax]
-            -- run the program with a and return the output
-            testExec a = execute prog (State 0 a 0 0) []
-            -- does the program, run on a, output the first two numbers
-    --        test nums a = (take 2 nums) == (take (min 2 (length nums)) $ testExec a) --`debug` ("targ: " ++ (show (take 2 nums)) ++ " a: " ++ (show a) ++ " res: " ++ (show (take 2 $ testExec a)))
-            test nums a = (head nums) == (head $ testExec a) --`debug` ("targ: " ++ (show (head nums)) ++ " a: " ++ (show $ Just a) ++ " res: " ++ (show (head $ testExec a)))
---            as = [3773, 3543]
-            recurse a = go (tail nums) ((a `shiftR` 3) .&. 4095) 9
-            valid = filter (test nums) as :: [Int]
---            results = map (\v -> if isJust (recurse v) then Just (v .&. 7:(fromJust $ recurse v)) else Nothing) valid :: [Maybe [Int]]
-            results = map (\v -> do { recursed <- recurse v; return (v .&. 7:recursed) } ) valid :: [Maybe [Int]]
-        in
-        firstJusts results
---        do
---            result <- find test as `debug` ("fixed " ++ (show fixed) ++ " = " ++ (show $ Just fixed))
---            recurse <- go (tail nums) ((result `shiftR` 3) .&. 7) 3 `debug` ("result: " ++ (show $ Just result) ++ " -> " ++ (show $ testExec result))
---            return (result:recurse)
+    let res = go [0, 3] 0 0 0 where
+            go :: [Int] -> Int -> Int -> Int -> [Int]
+            go [] _ fixed _ = [fixed]
+            go (n:nums) i fixed fixedBits = let
+                    as = map (\v -> fixed `shiftL` 3 + v) [0..63]
+                    -- run the program with a and return the output
+                    test a = n == (reverse (testExec a) !! i) --`debug` ("targ: " ++ (show (head nums)) ++ " a: " ++ (show $ Just a) ++ " res: " ++ (show (head $ testExec a)))
+                    recurse a = go nums (i+1) a 0
+                    valid = filter test as
+        --            prependMap :: Int -> [[Int]] -> [[Int]]
+        --            prependMap v = map (\r -> ((v .&. 7):r))
+        --            results = map (\v -> do { recursed <- recurse v; return $ concat $ prependMap v recursed } ) valid :: [Maybe [Int]]
+                    results = concat $ map recurse valid
+                in
+        --        concatMaybes results --`debug` ("test: " ++ (show $ map (testExec . words2int) $ catMaybes results))
+                results
+    in
+    res `debug` (show $ zip (map int2words res) $ map testExec res)
+
+concatMaybes :: [Maybe a] -> Maybe [a]
+concatMaybes l = let filtered = catMaybes l in
+    if null filtered then Nothing
+    else Just filtered
 
 bin :: Int -> [Bool]
 bin n = map toEnum $ case n of
@@ -215,3 +216,12 @@ bin n = map toEnum $ case n of
     5 -> [1, 0, 1]
     6 -> [1, 1, 0]
     7 -> [1, 1, 1]
+
+words2int :: [Int] -> Int
+words2int = go 0 where
+    go n [] = n
+    go n (x:xs) = go ((n `shiftL` 3) + x) xs
+
+int2words :: Int -> [Int]
+int2words 0 = []
+int2words n = int2words (n `shiftR` 3) ++ [n .&. 7]
