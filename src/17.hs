@@ -6,28 +6,18 @@ module Main where
 
 import Debug.Trace
 
-import Data.List
 import Data.List.Split
 import Data.Maybe
 import Data.Vector (Vector)
 import qualified Data.Vector as V
-import Data.Set (Set)
-import qualified Data.Set as S
-import Data.Map (Map)
-import qualified Data.Map as M
 import Data.Bits
-import GHC.Data.Maybe
 
 import Text.Printf
-import Numeric (showHex, showIntAtBase)
-import Data.Char (intToDigit)
 
-import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C
 
 import Advent
 import Advent.Input
-import GHC.Platform (Arch(ArchS390X))
 
 type Op = Int
 
@@ -40,12 +30,6 @@ data State = State {
 
 instance Show State where
     show (State i a b c) = printf "%d\n\tA: %s\n\tB: %s\n\tC: %s" i (printWords a) (printWords b) (printWords c)
---    deriving (Show)k
---    prog :: Vector Int,
-
-instance {-# OVERLAPPING #-} Show (Maybe Int) where
-    show Nothing = "---"
-    show (Just x) = printf "%03b" x
 
 main :: IO ()
 main = do
@@ -62,7 +46,6 @@ main = do
 
         prog = parseProg progLine
         part1 = execute prog (State 0 a b c) []
---    print (a, b, c, prog)
     putStrLn $ C.unpack $ C.intercalate "," $ map (C.pack . show) part1
     print $ part2 prog
 
@@ -76,6 +59,7 @@ parseProg line = let
     in
     V.fromList $ map parseInt digs
 
+parseInt :: C.ByteString -> Int
 parseInt = fst . fromJust . C.readInt
 
 execute :: Vector Op -> State -> [Int] -> [Int]
@@ -94,7 +78,6 @@ step prog state@(State i a b c) = let
         comboval = getComboValue opval state
         stepPtr = i + 2 --`debug` (show (op, opval, comboval))
     in
---    swap $ traceShowId $ swap $
     if
         | op == 0 -> -- adv
             (state {iPtr = stepPtr, regA = a `shiftR` comboval}, Nothing)
@@ -135,71 +118,27 @@ printWords :: Int -> String
 printWords x = let bin = printf "%03b" x in
     reverse $ unwords $ chunksOf 3 $ reverse bin
 
-swap (a, b) = (b, a)
-
---part2 :: Vector Int -> Int
---part2 nums = let
---        bins = map bin $ V.toList nums :: [[Bool]]
---        flatBins = concat bins :: [Bool]
---        -- 0 <= i < 3
---        matches
---            word
---            flatBins
---            flip
---            i
---            shift = let
---                res = flip
---                    `xor` (flatBins !! i)
---                    `xor` (flatBins !! (i + shift)) == word !! i --`debug` (show (i, shift))
---            in
---            res --`debug` ("matches " ++ (show i) ++ " " ++ (show shift) ++ "? --> " ++ (show res))
---        createWord :: [Bool] -> [Bool] -> Int -> [Bool]
---        createWord [b0, b1, b2] flatBins shift = [
---                b0 `xor` flatBins !! shift,
---                b1 `xor` flatBins !! (1 + shift),
---                b2 `xor` flatBins !! (2 + shift)
---            ]
---        word2bin :: [Bool] -> Int
---        word2bin word = go word 0 where
---            go [] acc = acc
---            go (b:bs) acc = go bs $ (acc * 2) + (fromEnum b)
---        requiredShift word flatBins = find (\s -> (
---                   matches word flatBins True 0 s
---                && matches word flatBins False 1 s
---                && matches word flatBins False 2 s
---            )) [1..7] --`debug` ("word: " ++ show word ++ ", all: " ++ (show $ map (map fromEnum) bins))
---        requiredShifts :: [[Bool]] -> [Bool] -> [[Bool]]
---        requiredShifts [] _ = []
---        requiredShifts _ [] = []
---        requiredShifts (word:words) flatBins = let shift = requiredShift word flatBins in
---            case shift of
---                Just s -> (createWord word flatBins s:requiredShifts words (drop 3 flatBins)) `debug` (show $ map fromEnum flatBins)
---                Nothing -> ([[False, False, False, True, True, True]])
---    in
---    0 `debug` (show $ map (map fromEnum) $ requiredShifts bins flatBins)
-
+part2 :: Vector Op -> Int
 part2 prog = let
         prog' = V.toList prog
         testExec a = execute prog (State 0 a 0 0) []
     in
-    let res = go (reverse prog') 0 0 0 where
-            go :: [Int] -> Int -> Int -> Int -> [Int]
-            go [] _ fixed _ = [fixed]
-            go (n:nums) i fixed fixedBits = let
+    let res = go (reverse prog') 0 0 where
+            go :: [Int] -> Int -> Int -> [Int]
+            go [] _ fixed = [fixed]
+            go (n:nums) i fixed = let
                     as = map (\v -> fixed `shiftL` 3 + v) [0..7]
                     -- run the program with a and return the output
-                    test a = n == (reverse (testExec a) !! i) --`debug` ("targ: " ++ (show (head nums)) ++ " a: " ++ (show $ Just a) ++ " res: " ++ (show (head $ testExec a)))
-                    recurse a = go nums (i+1) a 0
+                    test a = let
+                            output = reverse (testExec a)
+                        in length output > i && n == output !! i
                     valid = filter test as
-        --            prependMap :: Int -> [[Int]] -> [[Int]]
-        --            prependMap v = map (\r -> ((v .&. 7):r))
-        --            results = map (\v -> do { recursed <- recurse v; return $ concat $ prependMap v recursed } ) valid :: [Maybe [Int]]
-                    results = concat $ map recurse valid
+                    results = concatMap recurse valid
+                    recurse = go nums (i+1)
                 in
-        --        concatMaybes results --`debug` ("test: " ++ (show $ map (testExec . words2int) $ catMaybes results))
                 results
     in
-    res `debug` (show $ zip (map int2words res) $ map testExec res)
+    head res --`debug` show (zip (map int2words res) $ map testExec res)
 
 concatMaybes :: [Maybe a] -> Maybe [a]
 concatMaybes l = let filtered = catMaybes l in
@@ -220,7 +159,7 @@ bin n = map toEnum $ case n of
 words2int :: [Int] -> Int
 words2int = go 0 where
     go n [] = n
-    go n (x:xs) = go ((n `shiftL` 3) + x) xs
+    go n (x:xs) = go (n `shiftL` 3 + x) xs
 
 int2words :: Int -> [Int]
 int2words 0 = []
