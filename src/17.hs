@@ -182,11 +182,11 @@ part2 prog = let
         prog' = V.toList prog
         testExec a = execute prog (State 0 a 0 0) []
     in
-    let res = go [0, 3] 0 0 0 where
+    let res = go (reverse prog') 0 0 0 where
             go :: [Int] -> Int -> Int -> Int -> [Int]
             go [] _ fixed _ = [fixed]
             go (n:nums) i fixed fixedBits = let
-                    as = map (\v -> fixed `shiftL` 3 + v) [0..63]
+                    as = map (\v -> fixed `shiftL` 3 + v) [0..7]
                     -- run the program with a and return the output
                     test a = n == (reverse (testExec a) !! i) --`debug` ("targ: " ++ (show (head nums)) ++ " a: " ++ (show $ Just a) ++ " res: " ++ (show (head $ testExec a)))
                     recurse a = go nums (i+1) a 0
