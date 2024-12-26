@@ -25,7 +25,7 @@ main = do
         secretSeqs = map evolveSecret inputNums :: [[Int]]
         priceSeqs = map (\seq -> map price seq) secretSeqs :: [[Int]]
         changeSeqs = map (\seq -> (sequence4s (changes (map price seq)))) priceSeqs :: [[(Int, Int, Int, Int)]]
-        seqToPrice = map (\(prices, changes) -> M.fromListWith (\_ b -> b) $ zip (take 2000 changes) (drop 4 prices)) $ zip priceSeqs changeSeqs :: [Map (Int, Int, Int, Int) Int]
+        seqToPrice = map (\(prices, changes) -> M.fromListWith (\a b -> b) $ zip (take 1997 changes) (drop 4 prices)) $ zip priceSeqs changeSeqs :: [Map (Int, Int, Int, Int) Int]
         totals = foldl' (\ma mb -> M.unionWith (+) ma mb) M.empty seqToPrice :: Map (Int, Int, Int, Int) Int
     print $ sum $ map (\seq -> seq !! 2000) secretSeqs
     print $ maximum $ M.elems totals
