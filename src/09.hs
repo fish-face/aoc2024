@@ -84,23 +84,23 @@ part1 blocks = go (tail blocks) (reverse blocks) (bSize (head blocks)) (sum $ ma
     go (Empty eSize:blocks) (File fSize id _:rblocks) left right =
         --traceShow (Empty eSize:blocks, File fSize id:rblocks, left, right) $
         if
-            | left >= right -> 0 --`debug` ("terminating " ++ show (left, right)) -- TODO
+            | left >= right -> 0 `debug` ("terminating " ++ show (left, right)) -- TODO
             | eSize == fSize -> let
                     (skippedF:nextEmpty) = blocks
                     (skippedE:nextFiles) = rblocks
                     nextLeft = left + eSize + bSize skippedF
                     nextRight = right - fSize - bSize skippedE
 --                    value = id * left + id * (left + 1) ... + id * (left + size)
-                    value = checksumContrib (File fSize id left) + if nextLeft < nextRight then (checksumContrib' (left + eSize) skippedF) else 0
+                    value = checksumContrib (File fSize id left) + if nextLeft <= nextRight then (checksumContrib' (left + eSize) skippedF) else 0
                 in
-                value + go nextEmpty nextFiles nextLeft nextRight --`debug` ("== " ++ (show (value, checksumContrib (File fSize id left), checksumContrib' (left + eSize) skippedF)))
+                value + go nextEmpty nextFiles nextLeft nextRight `debug` ("== " ++ (show (value, checksumContrib (File fSize id left), checksumContrib' (left + eSize) skippedF)))
             | eSize > fSize -> let
                     (skippedE:nextFiles) = rblocks
                     nextLeft = left + fSize
                     nextRight = right - fSize - bSize skippedE
                     value = checksumContrib (File fSize id left)
                 in
-                value + go (Empty (eSize - fSize):blocks) nextFiles nextLeft nextRight --`debug` ("> " ++ (show value))
+                value + go (Empty (eSize - fSize):blocks) nextFiles nextLeft nextRight `debug` ("> " ++ (show value))
             | otherwise -> let -- eSize < fSize
                     (skippedF:nextEmpties) = blocks
                     nextLeft = left + eSize + bSize skippedF
@@ -110,7 +110,7 @@ part1 blocks = go (tail blocks) (reverse blocks) (bSize (head blocks)) (sum $ ma
                     value = checksumContrib (File eSize id left) + (checksumContrib (File effectiveSize skippedId (left + eSize)))
                     --`debug` (show (checksumContrib left (File eSize id),(checksumContrib (left + eSize) skippedF)))
                 in
-                value + go nextEmpties (File (fSize - eSize) id undefined:rblocks) nextLeft nextRight --`debug` ("< " ++ (show value))
+                value + go nextEmpties (File (fSize - eSize) id undefined:rblocks) nextLeft nextRight `debug` ("< " ++ (show value))
     go a b c d = error $ show (a, b, c, d)
 
 checksumContrib :: Block -> Int
