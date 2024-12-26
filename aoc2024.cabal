@@ -182,3 +182,7 @@ executable day23
 executable day24
     import:           day
     main-is:          24.hs
+
+executable day25
+    import:           day
+    main-is:          25.hs
