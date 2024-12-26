@@ -25,7 +25,7 @@ main = do
     let
         (pos, dir) = findStart input
         grid = fromLines input
-    let Leave res histP histPD = walk grid Map.empty Map.empty (pos, dir)
+    let Leave res histP histPD = Main.walk grid Map.empty Map.empty (pos, dir)
     print res
     print $ part2 grid (pos, dir) histP histPD
 
@@ -105,7 +105,7 @@ part2 grid start histP histPD = 1 + (sum $ Prelude.map (
 testLoop :: Grid Char -> (Coord, Direction) -> Map Coord Int -> Coord -> Bool
 testLoop grid start histP obstacle =
     let
-        res = walk (grid // [(obstacle, '#')]) Map.empty Map.empty start
+        res = Main.walk (grid // [(obstacle, '#')]) Map.empty Map.empty start
     in
     res == Loop
 
