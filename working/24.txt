@@ -1,0 +1,22 @@
+1.
+	y05 XOR x05 -> nbc
+	=> y05 XOR x05 -> svm
+	y05 AND x05 -> svm
+	=> y05 AND x05 -> nbc
+2. 
+	dkk OR pbd -> z15
+	=> dkk OR pbd -> kqk
+	cpv XOR fwr -> kqk
+	=> cpv XOR fwr -> z15
+3.
+	y23 AND x23 -> z23
+	=> y23 AND x23 -> cgq
+	hpw XOR kph -> cgq
+	=> hpw XOR kph -> z23
+4.
+	fsp AND bdr -> z39
+	=> fsp AND bdr -> fnr
+	fsp XOR bdr -> fnr
+	=> fsp XOR bdr -> z39
+
+cgq,fnr,kqk,nbc,svm,z15,z23,z39

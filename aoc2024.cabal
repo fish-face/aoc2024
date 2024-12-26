@@ -178,3 +178,7 @@ executable day23
     import:           day
     main-is:          23.hs
     build-depends:    maximal-cliques
+
+executable day24
+    import:           day
+    main-is:          24.hs
