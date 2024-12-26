@@ -3,6 +3,7 @@
 
 module Main where
 
+import qualified Data.Set as S
 import Text.Regex.PCRE.Heavy
 import qualified Data.ByteString.Char8 as C
 
@@ -22,11 +23,13 @@ main = do
     input <- readInputLines
     let
         robots = map parse input
-        after100 = applyN (stepAll) robots 100
+        steps = iterate (stepAll) robots
+        after100 = steps !! 100
 --    print robots
 --    putStrLn $ printPoints (width-1, height-1) $ map (\(p, x) -> p) robots
 --    putStrLn $ printPoints (width-1, height-1) $ map (\(p, x) -> p) after100
     print $ foldr (*) 1 $ countQuads after100
+--    mapM_ print $ take 1000000 $ zip [0..] $ map output steps
 
 parseregex = [re|p=([0-9]+),([0-9]+) v=([-0-9]+),([-0-9]+)|]
 
@@ -62,3 +65,10 @@ countQuads robots = go robots (0, 0, 0, 0) where
         | x > hx, y > hy -> 2
         | x < hx, y > hy -> 3
         | otherwise -> -1
+
+output :: [Robot] -> String
+output robots = let
+        points = S.fromList $ map fst robots
+        coords = concat $ iterateEast ((0, 0), (width, height))
+    in
+    concat [[if S.member (x, y) points then '#' else '.'] | (x, y) <- coords]
