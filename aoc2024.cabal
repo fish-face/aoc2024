@@ -68,7 +68,7 @@ library common
 common day
     import:             warnings
     hs-source-dirs:     src
-    build-depends:      base ^>= {4.17, 4.18, 4.19, 4.20}, common, containers, bytestring, array, vector
+    build-depends:      base ^>= {4.17, 4.18, 4.19, 4.20}, common, containers, unordered-containers, bytestring, array, vector
     default-language:   Haskell2010
     ghc-options:        -threaded
 
